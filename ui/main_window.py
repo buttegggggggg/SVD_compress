@@ -26,24 +26,24 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("SVD Image Compression Tool")
         self.resize(1100, 650)
 
-        # 狀態變數
+        # State variables
         self.orig_img_arr: Optional[np.ndarray] = None
         self.svd_decomp = None
         self.current_comp_img: Optional[np.ndarray] = None
         self.orig_file_size_mb: Optional[float] = None
         self.current_comp_size_mb: Optional[float] = None
 
-        # 三個預設 K 值
+        # Three preset K values
         self.k_light = None   # 95%
         self.k_medium = None  # 97%
         self.k_heavy = None   # 99%
 
-        # ===== layout =====
+        # ===== Layout =====
         central = QWidget()
         self.setCentralWidget(central)
         root_layout = QHBoxLayout(central)
 
-        # ================= 左邊 =================
+        # ================= Left Column =================
         left_col = QWidget()
         left_layout = QVBoxLayout(left_col)
 
@@ -51,21 +51,21 @@ class MainWindow(QMainWindow):
         header_layout = QVBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 10, 10)
 
-        # 選圖
+        # Select image
         self.btn_select = QPushButton("Select Image")
         self.btn_select.clicked.connect(self.on_select_image)
         header_layout.addWidget(self.btn_select, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        # 路徑
+        # File path
         self.label_path = QLabel("No file selected")
         self.label_path.setWordWrap(True)
         header_layout.addWidget(self.label_path)
 
-        # 原始大小
+        # Original size
         self.label_file_size = QLabel("Original size: N/A")
         header_layout.addWidget(self.label_file_size)
 
-        # 三個 preset 按鈕
+        # Three preset buttons
         presets_row = QWidget()
         presets_layout = QHBoxLayout(presets_row)
         presets_layout.setContentsMargins(0, 0, 0, 0)
@@ -96,7 +96,7 @@ class MainWindow(QMainWindow):
         presets_layout.addWidget(self.btn_preset_heavy)
         header_layout.addWidget(presets_row)
 
-        # k Slider
+        # K Slider
         header_layout.addWidget(QLabel("Compression Rank (k):"))
         self.slider_k = QSlider(Qt.Orientation.Horizontal)
         self.slider_k.setMinimum(1)
@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
 
         left_layout.addWidget(header, stretch=0)
 
-        # 原圖顯示
+        # Original image display
         self.label_orig = QLabel("Original")
         self.label_orig.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label_orig.setMinimumSize(400, 300)
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
         self.label_orig.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         left_layout.addWidget(self.label_orig, stretch=1)
 
-        # ================= 右邊 =================
+        # ================= Right Column =================
         right_col = QWidget()
         right_layout = QVBoxLayout(right_col)
 
@@ -141,14 +141,14 @@ class MainWindow(QMainWindow):
         self.label_simple.setStyleSheet("font-weight: bold;")
         comp_header_layout.addWidget(self.label_simple)
 
-        # Pro 指標
+        # Pro indicators
         self.label_pro = QLabel("")
         self.label_pro.setVisible(False)
         comp_header_layout.addWidget(self.label_pro)
 
         right_layout.addWidget(comp_header, stretch=0)
 
-        # 壓縮後圖片
+        # Compressed image
         self.label_comp = QLabel("Compressed")
         self.label_comp.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label_comp.setMinimumSize(400, 300)
@@ -156,11 +156,11 @@ class MainWindow(QMainWindow):
         self.label_comp.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         right_layout.addWidget(self.label_comp, stretch=1)
 
-        # 加入 root layout
+        # Add to root layout
         root_layout.addWidget(left_col, stretch=1)
         root_layout.addWidget(right_col, stretch=1)
 
-    # ================= 選圖片 =================
+    # ================= Select Image =================
     def on_select_image(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Image", "",
@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
         self.svd_decomp = svd_decompose_rgb(self.orig_img_arr)
         max_k = int(self.svd_decomp.max_rank)
 
-        # 預設 k
+        # Preset k values
         self.k_light = find_k_for_energy(self.svd_decomp, 0.95)
         self.k_medium = find_k_for_energy(self.svd_decomp, 0.97)
         self.k_heavy = find_k_for_energy(self.svd_decomp, 0.99)
@@ -194,10 +194,10 @@ class MainWindow(QMainWindow):
         self.slider_k.setValue(self.k_medium)
         self.slider_k.setEnabled(True)
 
-        # 預設更新
+        # Update default presets
         self.update_compression_view(self.k_medium)
 
-    # ================= numpy → QLabel =================
+    # ================= NumPy array to QLabel =================
     def show_image(self, target_label: QLabel, img_arr: np.ndarray):
         img_arr = np.clip(img_arr, 0, 255).astype(np.uint8)
         h, w, ch = img_arr.shape
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
         )
         target_label.setPixmap(scaled)
 
-    # ================= 更新畫面 =================
+    # ================= Update Compression View =================
     def update_compression_view(self, k: int):
         if self.svd_decomp is None:
             return
@@ -229,7 +229,7 @@ class MainWindow(QMainWindow):
         psnr = psnr_rgb(self.orig_img_arr, comp_img)
         rank_perc = 100 * k / float(self.svd_decomp.max_rank)
 
-        # JPEG 真實估計
+        # JPEG size estimation
         est_size = estimate_jpeg_size_mb(comp_img, quality=90)
         ratio = est_size / self.orig_file_size_mb
 
@@ -246,12 +246,12 @@ class MainWindow(QMainWindow):
 
         self.btn_download.setEnabled(True)
 
-    # ================= Slider 事件 =================
+    # ================= Slider Event =================
     def on_k_changed(self, value: int):
         """When the slider moves, update the compressed preview."""
         self.update_compression_view(int(value))
 
-    # ================= preset =================
+    # ================= Preset =================
     def on_preset_light(self):
         if self.k_light:
             self.slider_k.setValue(self.k_light)
@@ -264,11 +264,11 @@ class MainWindow(QMainWindow):
         if self.k_heavy:
             self.slider_k.setValue(self.k_heavy)
 
-    # ================= 模式切換 =================
+    # ================= Mode Switch =================
     def on_mode_changed(self, state):
         self.label_pro.setVisible(self.chk_pro.isChecked())
 
-    # ================= 視窗縮放 =================
+    # ================= Window Resize =================
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.orig_img_arr is not None:
@@ -276,7 +276,7 @@ class MainWindow(QMainWindow):
         if self.current_comp_img is not None:
             self.show_image(self.label_comp, self.current_comp_img)
 
-    # ================= 下載 =================
+    # ================= Download =================
     def on_download_clicked(self):
         if self.current_comp_img is None:
             return
