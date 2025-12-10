@@ -74,20 +74,23 @@ class MainWindow(QMainWindow):
 
         self.btn_preset_light = QPushButton("Light")
         self.btn_preset_light.setToolTip(
-            "Light compression (~90% energy)\n"
-            "Recommended for: photos, screenshots, report figures"
+            "Light compression (~95% energy)\n"
+            "Best for: scanned documents, tables, receipts\n"
+            "Note: slight blurring is acceptable for text-only content."
         )
 
         self.btn_preset_medium = QPushButton("Medium")
         self.btn_preset_medium.setToolTip(
-            "Medium compression (~95% energy)\n"
-            "Recommended for: documents, scanned IDs, daily use images"
+            "Medium compression (~97% energy)\n"
+            "Best for: ID photos, profile pictures, documents with images\n"
+            "Balanced quality and size; ideal for uploading forms."
         )
 
         self.btn_preset_heavy = QPushButton("Heavy")
         self.btn_preset_heavy.setToolTip(
             "Heavy compression (~99% energy)\n"
-            "Recommended for: ID photos, certificates, high-quality images"
+            "Best for: color photos, scenery images, high-resolution pictures\n"
+            "Preserves fine details with minimal quality loss."
         )
 
         # 綁定三個 preset 按鈕事件
@@ -204,8 +207,8 @@ class MainWindow(QMainWindow):
         # --- 計算三種 energy 對應的 k ---
         max_k = int(self.svd_decomp.max_rank)
 
-        self.k_light = find_k_for_energy(self.svd_decomp, 0.90)
-        self.k_medium = find_k_for_energy(self.svd_decomp, 0.95)
+        self.k_light = find_k_for_energy(self.svd_decomp, 0.95)
+        self.k_medium = find_k_for_energy(self.svd_decomp, 0.97)
         self.k_heavy = find_k_for_energy(self.svd_decomp, 0.99)
 
         # 安全界線
